@@ -57,10 +57,6 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name: Run smoke tests
-        id: tests
-        run: pytest -q
-
       - name: Extract issue number
         id: meta
         run: |
@@ -68,6 +64,11 @@ jobs:
           NUM=$(echo "$BRANCH" | sed -nE 's#^claude/issue-([0-9]+).*#\1#p')
           echo "issue=$NUM" >> "$GITHUB_OUTPUT"
           echo "추출된 이슈 번호: '$NUM'"
+
+      - name: Run smoke tests
+        id: tests
+        # `python -m`으로 실행해야 저장소 루트가 sys.path에 포함되어 `import app` 동작
+        run: python -m pytest -q
 
       - name: Create PR (if absent) and merge
         run: |
