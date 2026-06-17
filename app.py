@@ -1,0 +1,113 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
+import sqlite3
+import os
+
+app = Flask(__name__)
+app.secret_key = 'bulletin-board-secret-key'
+DATABASE = 'board.db'
+
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    with get_db() as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                author TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+
+
+@app.route('/')
+def index():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    offset = (page - 1) * per_page
+    with get_db() as conn:
+        total = conn.execute('SELECT COUNT(*) FROM posts').fetchone()[0]
+        posts = conn.execute(
+            'SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            (per_page, offset)
+        ).fetchall()
+    total_pages = (total + per_page - 1) // per_page
+    return render_template('index.html', posts=posts, page=page,
+                           total_pages=total_pages, total=total)
+
+
+@app.route('/post/<int:post_id>')
+def view_post(post_id):
+    with get_db() as conn:
+        post = conn.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
+    if post is None:
+        flash('게시글을 찾을 수 없습니다.', 'error')
+        return redirect(url_for('index'))
+    return render_template('view.html', post=post)
+
+
+@app.route('/post/new', methods=['GET', 'POST'])
+def create_post():
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        author = request.form.get('author', '').strip()
+        content = request.form.get('content', '').strip()
+        if not title or not author or not content:
+            flash('모든 필드를 입력해주세요.', 'error')
+            return render_template('form.html', action='create', post=request.form)
+        with get_db() as conn:
+            conn.execute(
+                'INSERT INTO posts (title, author, content) VALUES (?, ?, ?)',
+                (title, author, content)
+            )
+            conn.commit()
+        flash('게시글이 등록되었습니다.', 'success')
+        return redirect(url_for('index'))
+    return render_template('form.html', action='create', post={})
+
+
+@app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+def edit_post(post_id):
+    with get_db() as conn:
+        post = conn.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
+    if post is None:
+        flash('게시글을 찾을 수 없습니다.', 'error')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        author = request.form.get('author', '').strip()
+        content = request.form.get('content', '').strip()
+        if not title or not author or not content:
+            flash('모든 필드를 입력해주세요.', 'error')
+            return render_template('form.html', action='edit', post=request.form, post_id=post_id)
+        with get_db() as conn:
+            conn.execute(
+                'UPDATE posts SET title=?, author=?, content=?, updated_at=CURRENT_TIMESTAMP WHERE id=?',
+                (title, author, content, post_id)
+            )
+            conn.commit()
+        flash('게시글이 수정되었습니다.', 'success')
+        return redirect(url_for('view_post', post_id=post_id))
+    return render_template('form.html', action='edit', post=post, post_id=post_id)
+
+
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+def delete_post(post_id):
+    with get_db() as conn:
+        conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
+        conn.commit()
+    flash('게시글이 삭제되었습니다.', 'success')
+    return redirect(url_for('index'))
+
+
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)
