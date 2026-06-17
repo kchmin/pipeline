@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}TODO 관리{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>TODO 목록 <span class="post-count">(총 {{ todos|length }}개)</span></h2>
+</div>
+
+<div class="todo-add-form">
+    <form action="{{ url_for('add_todo') }}" method="post" class="todo-input-row">
+        <input type="text" name="content" placeholder="할 일을 입력하세요" class="todo-input" required>
+        <button type="submit" class="btn btn-primary">추가</button>
+    </form>
+</div>
+
+<div class="todo-list">
+    {% if todos %}
+        {% for todo in todos %}
+        <div class="todo-item {% if todo.done %}todo-done{% endif %}">
+            <form action="{{ url_for('toggle_todo', todo_id=todo.id) }}" method="post" class="todo-toggle-form">
+                <button type="submit" class="todo-check" title="완료 토글">
+                    {% if todo.done %}✅{% else %}⬜{% endif %}
+                </button>
+            </form>
+            <span class="todo-content">{{ todo.content }}</span>
+            <span class="todo-date">{{ todo.created_at[:10] }}</span>
+            <form action="{{ url_for('delete_todo', todo_id=todo.id) }}" method="post" class="todo-delete-form">
+                <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('삭제하시겠습니까?')">삭제</button>
+            </form>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-todo">등록된 할 일이 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

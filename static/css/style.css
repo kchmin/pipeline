@@ -40,6 +40,34 @@ header h1 a:hover {
     opacity: 0.85;
 }
 
+.main-nav {
+    display: flex;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.nav-tab {
+    padding: 6px 18px;
+    border-radius: 5px 5px 0 0;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.nav-tab:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.nav-tab.active {
+    color: white;
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.2);
+}
+
 /* Footer */
 footer {
     background: #2c3e50;
@@ -331,4 +359,97 @@ main {
     margin-top: 28px;
     padding-top: 20px;
     border-top: 1px solid #eee;
+}
+
+/* TODO */
+.todo-add-form {
+    margin-bottom: 20px;
+}
+
+.todo-input-row {
+    display: flex;
+    gap: 10px;
+}
+
+.todo-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #333;
+    background: white;
+    transition: border-color 0.15s;
+}
+
+.todo-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: opacity 0.15s;
+}
+
+.todo-item.todo-done .todo-content {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+.todo-check {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.todo-toggle-form,
+.todo-delete-form {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.todo-content {
+    flex: 1;
+    font-size: 15px;
+    color: #333;
+}
+
+.todo-date {
+    font-size: 12px;
+    color: #aaa;
+    flex-shrink: 0;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 13px;
+}
+
+.empty-todo {
+    text-align: center;
+    color: #999;
+    padding: 40px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
