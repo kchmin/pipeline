@@ -25,6 +25,14 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS todos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                done INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
 
 
@@ -106,6 +114,52 @@ def delete_post(post_id):
         conn.commit()
     flash('게시글이 삭제되었습니다.', 'success')
     return redirect(url_for('index'))
+
+
+@app.route('/todos')
+def todos():
+    with get_db() as conn:
+        items = conn.execute(
+            'SELECT * FROM todos ORDER BY created_at DESC'
+        ).fetchall()
+    return render_template('todos.html', todos=items)
+
+
+@app.route('/todos/add', methods=['POST'])
+def add_todo():
+    content = request.form.get('content', '').strip()
+    if not content:
+        flash('할 일을 입력해주세요.', 'error')
+        return redirect(url_for('todos'))
+    with get_db() as conn:
+        conn.execute('INSERT INTO todos (content) VALUES (?)', (content,))
+        conn.commit()
+    flash('할 일이 추가되었습니다.', 'success')
+    return redirect(url_for('todos'))
+
+
+@app.route('/todos/<int:todo_id>/toggle', methods=['POST'])
+def toggle_todo(todo_id):
+    with get_db() as conn:
+        todo = conn.execute('SELECT done FROM todos WHERE id = ?', (todo_id,)).fetchone()
+        if todo is None:
+            flash('항목을 찾을 수 없습니다.', 'error')
+            return redirect(url_for('todos'))
+        conn.execute(
+            'UPDATE todos SET done = ? WHERE id = ?',
+            (0 if todo['done'] else 1, todo_id)
+        )
+        conn.commit()
+    return redirect(url_for('todos'))
+
+
+@app.route('/todos/<int:todo_id>/delete', methods=['POST'])
+def delete_todo(todo_id):
+    with get_db() as conn:
+        conn.execute('DELETE FROM todos WHERE id = ?', (todo_id,))
+        conn.commit()
+    flash('할 일이 삭제되었습니다.', 'success')
+    return redirect(url_for('todos'))
 
 
 if __name__ == '__main__':
