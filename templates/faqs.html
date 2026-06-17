@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}FAQ 관리{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>FAQ 목록 <span class="post-count">(총 {{ faqs|length }}개)</span></h2>
+</div>
+
+<div class="faq-add-form">
+    <h3 class="faq-form-title">FAQ 등록</h3>
+    <form action="{{ url_for('add_faq') }}" method="post">
+        <div class="form-group">
+            <label for="question">Q <span class="required">*</span></label>
+            <input type="text" id="question" name="question" placeholder="질문을 입력하세요" required>
+        </div>
+        <div class="form-group">
+            <label for="answer">A <span class="required">*</span></label>
+            <textarea id="answer" name="answer" rows="3" placeholder="답변을 입력하세요" required></textarea>
+        </div>
+        <div class="faq-form-actions">
+            <button type="submit" class="btn btn-primary">등록</button>
+        </div>
+    </form>
+</div>
+
+<div class="faq-list">
+    {% if faqs %}
+        {% for faq in faqs %}
+        <div class="faq-card" id="faq-{{ faq.id }}">
+            <div class="faq-view" id="faq-view-{{ faq.id }}">
+                <div class="faq-body">
+                    <p class="faq-question"><span class="faq-label faq-q">Q</span>{{ faq.question }}</p>
+                    <p class="faq-answer"><span class="faq-label faq-a">A</span>{{ faq.answer }}</p>
+                </div>
+                <div class="faq-actions">
+                    <button class="btn btn-outline btn-sm"
+                            onclick="toggleEdit({{ faq.id }})">수정</button>
+                    <form action="{{ url_for('delete_faq', faq_id=faq.id) }}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('삭제하시겠습니까?')">삭제</button>
+                    </form>
+                </div>
+            </div>
+            <div class="faq-edit" id="faq-edit-{{ faq.id }}" style="display:none">
+                <form action="{{ url_for('edit_faq', faq_id=faq.id) }}" method="post">
+                    <div class="form-group">
+                        <label>Q <span class="required">*</span></label>
+                        <input type="text" name="question" value="{{ faq.question }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>A <span class="required">*</span></label>
+                        <textarea name="answer" rows="3" required>{{ faq.answer }}</textarea>
+                    </div>
+                    <div class="faq-form-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">저장</button>
+                        <button type="button" class="btn btn-outline btn-sm"
+                                onclick="toggleEdit({{ faq.id }})">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-todo">등록된 FAQ가 없습니다.</div>
+    {% endif %}
+</div>
+
+<script>
+function toggleEdit(id) {
+    var view = document.getElementById('faq-view-' + id);
+    var edit = document.getElementById('faq-edit-' + id);
+    if (edit.style.display === 'none') {
+        view.style.display = 'none';
+        edit.style.display = 'block';
+    } else {
+        view.style.display = 'flex';
+        edit.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
