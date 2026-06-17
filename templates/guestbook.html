@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}방명록{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>방명록 <span class="post-count">(총 {{ entries|length }}개)</span></h2>
+</div>
+
+<div class="guestbook-add-form">
+    <h3 class="guestbook-form-title">✍️ 방명록 작성</h3>
+    <form action="{{ url_for('add_guestbook') }}" method="post">
+        <div class="form-group">
+            <label for="name">이름 <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="이름을 입력하세요" required>
+        </div>
+        <div class="form-group">
+            <label for="message">메시지 <span class="required">*</span></label>
+            <textarea id="message" name="message" rows="4" placeholder="방명록 메시지를 남겨주세요" required></textarea>
+        </div>
+        <div class="guestbook-form-actions">
+            <button type="submit" class="btn btn-primary">등록</button>
+        </div>
+    </form>
+</div>
+
+<div class="guestbook-list">
+    {% if entries %}
+        {% for entry in entries %}
+        <div class="guestbook-card">
+            <div class="guestbook-avatar">{{ entry.name[0] }}</div>
+            <div class="guestbook-body">
+                <div class="guestbook-header">
+                    <span class="guestbook-name">{{ entry.name }}</span>
+                    <span class="guestbook-date">{{ entry.created_at[:16] }}</span>
+                </div>
+                <div class="guestbook-message">{{ entry.message }}</div>
+            </div>
+            <div class="guestbook-actions">
+                <form action="{{ url_for('delete_guestbook', entry_id=entry.id) }}" method="post" style="display:inline">
+                    <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('삭제하시겠습니까?')">삭제</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-todo">아직 방명록이 없습니다. 첫 번째 방문자가 되어주세요!</div>
+    {% endif %}
+</div>
+{% endblock %}

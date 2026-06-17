@@ -31,6 +31,10 @@
                    class="nav-tab {% if request.endpoint in ('contacts', 'add_contact', 'edit_contact', 'delete_contact') %}active{% endif %}">
                     연락처
                 </a>
+                <a href="{{ url_for('guestbook') }}"
+                   class="nav-tab {% if request.endpoint in ('guestbook', 'add_guestbook', 'delete_guestbook') %}active{% endif %}">
+                    방명록
+                </a>
             </nav>
         </div>
     </header>
