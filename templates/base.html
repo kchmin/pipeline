@@ -19,6 +19,10 @@
                    class="nav-tab {% if request.endpoint in ('todos', 'add_todo', 'toggle_todo', 'delete_todo') %}active{% endif %}">
                     TODO
                 </a>
+                <a href="{{ url_for('faqs') }}"
+                   class="nav-tab {% if request.endpoint in ('faqs', 'add_faq', 'edit_faq', 'delete_faq') %}active{% endif %}">
+                    FAQ
+                </a>
             </nav>
         </div>
     </header>

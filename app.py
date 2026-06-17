@@ -33,6 +33,15 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS faqs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                question TEXT NOT NULL,
+                answer TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
 
 
@@ -160,6 +169,53 @@ def delete_todo(todo_id):
         conn.commit()
     flash('할 일이 삭제되었습니다.', 'success')
     return redirect(url_for('todos'))
+
+
+@app.route('/faqs')
+def faqs():
+    with get_db() as conn:
+        items = conn.execute('SELECT * FROM faqs ORDER BY created_at DESC').fetchall()
+    return render_template('faqs.html', faqs=items)
+
+
+@app.route('/faqs/add', methods=['POST'])
+def add_faq():
+    question = request.form.get('question', '').strip()
+    answer = request.form.get('answer', '').strip()
+    if not question or not answer:
+        flash('질문과 답변을 모두 입력해주세요.', 'error')
+        return redirect(url_for('faqs'))
+    with get_db() as conn:
+        conn.execute('INSERT INTO faqs (question, answer) VALUES (?, ?)', (question, answer))
+        conn.commit()
+    flash('FAQ가 등록되었습니다.', 'success')
+    return redirect(url_for('faqs'))
+
+
+@app.route('/faqs/<int:faq_id>/edit', methods=['POST'])
+def edit_faq(faq_id):
+    question = request.form.get('question', '').strip()
+    answer = request.form.get('answer', '').strip()
+    if not question or not answer:
+        flash('질문과 답변을 모두 입력해주세요.', 'error')
+        return redirect(url_for('faqs'))
+    with get_db() as conn:
+        conn.execute(
+            'UPDATE faqs SET question=?, answer=?, updated_at=CURRENT_TIMESTAMP WHERE id=?',
+            (question, answer, faq_id)
+        )
+        conn.commit()
+    flash('FAQ가 수정되었습니다.', 'success')
+    return redirect(url_for('faqs'))
+
+
+@app.route('/faqs/<int:faq_id>/delete', methods=['POST'])
+def delete_faq(faq_id):
+    with get_db() as conn:
+        conn.execute('DELETE FROM faqs WHERE id = ?', (faq_id,))
+        conn.commit()
+    flash('FAQ가 삭제되었습니다.', 'success')
+    return redirect(url_for('faqs'))
 
 
 if __name__ == '__main__':
