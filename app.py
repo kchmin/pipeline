@@ -248,6 +248,9 @@ def calendar():
                            next_month=next_month)
 
 
+# gunicorn 등으로 import될 때도 테이블이 존재하도록 보장 (CREATE IF NOT EXISTS)
+init_db()
+
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
