@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}달력{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>📅 달력</h2>
+</div>
+
+<div class="calendar-container">
+    <div class="calendar-nav">
+        <a href="{{ url_for('calendar', year=prev_year, month=prev_month) }}" class="btn btn-outline">◀ 이전 달</a>
+        <span class="calendar-month-title">{{ month_name }}</span>
+        <a href="{{ url_for('calendar', year=next_year, month=next_month) }}" class="btn btn-outline">다음 달 ▶</a>
+    </div>
+
+    <table class="calendar-table">
+        <thead>
+            <tr>
+                <th class="cal-sun">일</th>
+                <th>월</th>
+                <th>화</th>
+                <th>수</th>
+                <th>목</th>
+                <th>금</th>
+                <th class="cal-sat">토</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in weeks %}
+            <tr>
+                {% for i in range(7) %}
+                {% set day = week[i] %}
+                <td class="
+                    {% if day == 0 %}cal-empty{% endif %}
+                    {% if i == 0 %}cal-sun{% elif i == 6 %}cal-sat{% endif %}
+                    {% if day != 0 and day == today.day and year == today.year and month == today.month %}cal-today{% endif %}
+                ">
+                    {% if day != 0 %}{{ day }}{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="calendar-today-link">
+        <a href="{{ url_for('calendar') }}" class="btn btn-outline btn-sm">오늘로 이동</a>
+    </div>
+</div>
+{% endblock %}

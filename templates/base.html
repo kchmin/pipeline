@@ -23,6 +23,10 @@
                    class="nav-tab {% if request.endpoint in ('faqs', 'add_faq', 'edit_faq', 'delete_faq') %}active{% endif %}">
                     FAQ
                 </a>
+                <a href="{{ url_for('calendar') }}"
+                   class="nav-tab {% if request.endpoint == 'calendar' %}active{% endif %}">
+                    달력
+                </a>
             </nav>
         </div>
     </header>
