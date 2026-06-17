@@ -55,6 +55,14 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS guestbook (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
 
 
@@ -311,6 +319,41 @@ def delete_contact(contact_id):
         conn.commit()
     flash('연락처가 삭제되었습니다.', 'success')
     return redirect(url_for('contacts'))
+
+
+@app.route('/guestbook')
+def guestbook():
+    with get_db() as conn:
+        entries = conn.execute(
+            'SELECT * FROM guestbook ORDER BY created_at DESC'
+        ).fetchall()
+    return render_template('guestbook.html', entries=entries)
+
+
+@app.route('/guestbook/add', methods=['POST'])
+def add_guestbook():
+    name = request.form.get('name', '').strip()
+    message = request.form.get('message', '').strip()
+    if not name or not message:
+        flash('이름과 메시지를 모두 입력해주세요.', 'error')
+        return redirect(url_for('guestbook'))
+    with get_db() as conn:
+        conn.execute(
+            'INSERT INTO guestbook (name, message) VALUES (?, ?)',
+            (name, message)
+        )
+        conn.commit()
+    flash('방명록에 등록되었습니다.', 'success')
+    return redirect(url_for('guestbook'))
+
+
+@app.route('/guestbook/<int:entry_id>/delete', methods=['POST'])
+def delete_guestbook(entry_id):
+    with get_db() as conn:
+        conn.execute('DELETE FROM guestbook WHERE id = ?', (entry_id,))
+        conn.commit()
+    flash('방명록 글이 삭제되었습니다.', 'success')
+    return redirect(url_for('guestbook'))
 
 
 # gunicorn 등으로 import될 때도 테이블이 존재하도록 보장 (CREATE IF NOT EXISTS)

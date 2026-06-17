@@ -730,3 +730,90 @@ main {
     padding: 20px;
     border-top: 1px solid #eee;
 }
+
+/* Guestbook */
+.guestbook-add-form {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.guestbook-form-title {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.guestbook-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.guestbook-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.guestbook-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.guestbook-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #27ae60;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.guestbook-body {
+    flex: 1;
+}
+
+.guestbook-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.guestbook-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.guestbook-date {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.guestbook-message {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.guestbook-actions {
+    flex-shrink: 0;
+}
