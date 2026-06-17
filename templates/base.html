@@ -27,6 +27,10 @@
                    class="nav-tab {% if request.endpoint == 'calendar' %}active{% endif %}">
                     달력
                 </a>
+                <a href="{{ url_for('contacts') }}"
+                   class="nav-tab {% if request.endpoint in ('contacts', 'add_contact', 'edit_contact', 'delete_contact') %}active{% endif %}">
+                    연락처
+                </a>
             </nav>
         </div>
     </header>

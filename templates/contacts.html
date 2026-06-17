@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}연락처 관리{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>연락처 목록 <span class="post-count">(총 {{ contacts|length }}명)</span></h2>
+</div>
+
+<div class="contact-add-form">
+    <h3 class="contact-form-title">연락처 등록</h3>
+    <form action="{{ url_for('add_contact') }}" method="post">
+        <div class="contact-form-grid">
+            <div class="form-group">
+                <label for="name">이름 <span class="required">*</span></label>
+                <input type="text" id="name" name="name" placeholder="이름을 입력하세요" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">전화번호</label>
+                <input type="text" id="phone" name="phone" placeholder="010-0000-0000">
+            </div>
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" name="email" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label for="memo">메모</label>
+                <input type="text" id="memo" name="memo" placeholder="메모를 입력하세요">
+            </div>
+        </div>
+        <div class="contact-form-actions">
+            <button type="submit" class="btn btn-primary">등록</button>
+        </div>
+    </form>
+</div>
+
+<div class="contact-list">
+    {% if contacts %}
+        {% for contact in contacts %}
+        <div class="contact-card" id="contact-{{ contact.id }}">
+            <div class="contact-view" id="contact-view-{{ contact.id }}">
+                <div class="contact-avatar">{{ contact.name[0] }}</div>
+                <div class="contact-body">
+                    <div class="contact-name">{{ contact.name }}</div>
+                    <div class="contact-details">
+                        {% if contact.phone %}
+                        <span class="contact-detail"><span class="contact-detail-label">📞</span>{{ contact.phone }}</span>
+                        {% endif %}
+                        {% if contact.email %}
+                        <span class="contact-detail"><span class="contact-detail-label">✉️</span>{{ contact.email }}</span>
+                        {% endif %}
+                        {% if contact.memo %}
+                        <span class="contact-detail"><span class="contact-detail-label">📝</span>{{ contact.memo }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="contact-actions">
+                    <button class="btn btn-outline btn-sm"
+                            onclick="toggleContactEdit({{ contact.id }})">수정</button>
+                    <form action="{{ url_for('delete_contact', contact_id=contact.id) }}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('삭제하시겠습니까?')">삭제</button>
+                    </form>
+                </div>
+            </div>
+            <div class="contact-edit" id="contact-edit-{{ contact.id }}" style="display:none">
+                <form action="{{ url_for('edit_contact', contact_id=contact.id) }}" method="post">
+                    <div class="contact-form-grid">
+                        <div class="form-group">
+                            <label>이름 <span class="required">*</span></label>
+                            <input type="text" name="name" value="{{ contact.name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>전화번호</label>
+                            <input type="text" name="phone" value="{{ contact.phone or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>이메일</label>
+                            <input type="email" name="email" value="{{ contact.email or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>메모</label>
+                            <input type="text" name="memo" value="{{ contact.memo or '' }}">
+                        </div>
+                    </div>
+                    <div class="contact-form-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">저장</button>
+                        <button type="button" class="btn btn-outline btn-sm"
+                                onclick="toggleContactEdit({{ contact.id }})">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-todo">등록된 연락처가 없습니다.</div>
+    {% endif %}
+</div>
+
+<script>
+function toggleContactEdit(id) {
+    var view = document.getElementById('contact-view-' + id);
+    var edit = document.getElementById('contact-edit-' + id);
+    if (edit.style.display === 'none') {
+        view.style.display = 'none';
+        edit.style.display = 'block';
+    } else {
+        view.style.display = 'flex';
+        edit.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
