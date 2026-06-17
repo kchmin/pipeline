@@ -1,0 +1,93 @@
+# ============================================================================
+# 무인 자동 병합 — Claude가 생성한 AI 브랜치를 테스트 통과 시 main에 자동 병합
+# ----------------------------------------------------------------------------
+# 흐름: 이슈에 @claude 멘션 → claude.yml이 코드 생성 후 `claude/issue-N-*` 브랜치 푸시
+#       → 이 워크플로가 그 push를 받아 ① 스모크 테스트 ② PR 생성(Closes #N)
+#       ③ main에 squash 병합 + 브랜치 삭제. 테스트 실패 시 병합하지 않고 이슈에 알림.
+#
+# 설계 의도:
+#   - 테스트를 이 워크플로 안에서 직접 실행 → 별도 CI 체크/브랜치 보호/auto-merge
+#     설정에 의존하지 않음(GITHUB_TOKEN 교차 트리거 제약 회피).
+#   - 사람·로컬 세션 없이 GitHub만으로 병합까지 완결.
+#
+# 보안 주의(Agents Rule of Two): 이 구성은 "신뢰 불가 입력(티켓) + 상태 변경(자동 병합)"을
+#   결합하므로, 위험 변경(시크릿/인프라/의존성)은 별도 라벨로 사람 검토를 강제하는 것을 권장.
+#   현재는 데모 목적의 자동화이며 main에 직접 병합한다.
+# ============================================================================
+
+name: Auto-merge AI branches
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: automerge-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout pushed branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run smoke tests
+        id: tests
+        run: pytest -q
+
+      - name: Extract issue number
+        id: meta
+        run: |
+          # 브랜치명 claude/issue-<N>-... 에서 이슈 번호 추출
+          NUM=$(echo "$BRANCH" | sed -nE 's#^claude/issue-([0-9]+).*#\1#p')
+          echo "issue=$NUM" >> "$GITHUB_OUTPUT"
+          echo "추출된 이슈 번호: '$NUM'"
+
+      - name: Create PR (if absent) and merge
+        run: |
+          set -e
+          ISSUE="${{ steps.meta.outputs.issue }}"
+          BODY="자동 생성 PR (테스트 통과 후 자동 병합)."
+          if [ -n "$ISSUE" ]; then BODY="$BODY"$'\n\n'"Closes #$ISSUE"; fi
+
+          # 이미 PR이 있으면 재사용, 없으면 생성
+          PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -z "$PR" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "auto: $BRANCH" --body "$BODY"
+            PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          fi
+          echo "PR #$PR 병합 시도"
+          gh pr merge "$PR" --squash --delete-branch
+
+      - name: Notify issue on failure
+        if: failure() && steps.meta.outputs.issue != ''
+        run: |
+          gh issue comment "${{ steps.meta.outputs.issue }}" \
+            --body "⚠️ 자동 병합 실패: 스모크 테스트 또는 병합 단계에서 오류가 발생했습니다. 브랜치 \`$BRANCH\`를 수동 확인해주세요. (run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
