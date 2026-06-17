@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 import os
+import calendar as cal_module
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'bulletin-board-secret-key'
@@ -216,6 +218,34 @@ def delete_faq(faq_id):
         conn.commit()
     flash('FAQ가 삭제되었습니다.', 'success')
     return redirect(url_for('faqs'))
+
+
+@app.route('/calendar')
+def calendar():
+    today = datetime.today()
+    year = request.args.get('year', today.year, type=int)
+    month = request.args.get('month', today.month, type=int)
+
+    # Clamp to valid range
+    year = max(2000, min(2100, year))
+    month = max(1, min(12, month))
+
+    weeks = cal_module.monthcalendar(year, month)
+    month_name = f"{year}년 {month}월"
+
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+    return render_template('calendar.html',
+                           weeks=weeks,
+                           year=year,
+                           month=month,
+                           month_name=month_name,
+                           today=today,
+                           prev_year=prev_year,
+                           prev_month=prev_month,
+                           next_year=next_year,
+                           next_month=next_month)
 
 
 if __name__ == '__main__':

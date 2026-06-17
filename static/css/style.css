@@ -552,3 +552,76 @@ main {
     padding: 20px;
     border-top: 1px solid #eee;
 }
+
+/* Calendar */
+.calendar-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 28px;
+    max-width: 720px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.calendar-month-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.calendar-table th {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calendar-table td {
+    padding: 14px 0;
+    text-align: center;
+    font-size: 15px;
+    border: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.calendar-table tbody tr:hover td:not(.cal-empty) {
+    background: #f8f9ff;
+}
+
+.cal-sun {
+    color: #e74c3c;
+}
+
+.cal-sat {
+    color: #3498db;
+}
+
+.cal-empty {
+    background: #fafafa;
+}
+
+.cal-today {
+    background: #3498db !important;
+    color: white !important;
+    border-radius: 50%;
+    font-weight: 700;
+}
+
+.calendar-today-link {
+    margin-top: 16px;
+    text-align: right;
+}
