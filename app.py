@@ -44,6 +44,17 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS contacts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT,
+                email TEXT,
+                memo TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
 
 
@@ -246,6 +257,60 @@ def calendar():
                            prev_month=prev_month,
                            next_year=next_year,
                            next_month=next_month)
+
+
+@app.route('/contacts')
+def contacts():
+    with get_db() as conn:
+        items = conn.execute('SELECT * FROM contacts ORDER BY name ASC').fetchall()
+    return render_template('contacts.html', contacts=items)
+
+
+@app.route('/contacts/add', methods=['POST'])
+def add_contact():
+    name = request.form.get('name', '').strip()
+    phone = request.form.get('phone', '').strip()
+    email = request.form.get('email', '').strip()
+    memo = request.form.get('memo', '').strip()
+    if not name:
+        flash('이름을 입력해주세요.', 'error')
+        return redirect(url_for('contacts'))
+    with get_db() as conn:
+        conn.execute(
+            'INSERT INTO contacts (name, phone, email, memo) VALUES (?, ?, ?, ?)',
+            (name, phone, email, memo)
+        )
+        conn.commit()
+    flash('연락처가 등록되었습니다.', 'success')
+    return redirect(url_for('contacts'))
+
+
+@app.route('/contacts/<int:contact_id>/edit', methods=['POST'])
+def edit_contact(contact_id):
+    name = request.form.get('name', '').strip()
+    phone = request.form.get('phone', '').strip()
+    email = request.form.get('email', '').strip()
+    memo = request.form.get('memo', '').strip()
+    if not name:
+        flash('이름을 입력해주세요.', 'error')
+        return redirect(url_for('contacts'))
+    with get_db() as conn:
+        conn.execute(
+            'UPDATE contacts SET name=?, phone=?, email=?, memo=?, updated_at=CURRENT_TIMESTAMP WHERE id=?',
+            (name, phone, email, memo, contact_id)
+        )
+        conn.commit()
+    flash('연락처가 수정되었습니다.', 'success')
+    return redirect(url_for('contacts'))
+
+
+@app.route('/contacts/<int:contact_id>/delete', methods=['POST'])
+def delete_contact(contact_id):
+    with get_db() as conn:
+        conn.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
+        conn.commit()
+    flash('연락처가 삭제되었습니다.', 'success')
+    return redirect(url_for('contacts'))
 
 
 # gunicorn 등으로 import될 때도 테이블이 존재하도록 보장 (CREATE IF NOT EXISTS)
