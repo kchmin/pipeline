@@ -70,22 +70,27 @@ jobs:
         # `python -m`으로 실행해야 저장소 루트가 sys.path에 포함되어 `import app` 동작
         run: python -m pytest -q
 
-      - name: Create PR (if absent) and merge
+      - name: Merge branch into main and close issue
         run: |
           set -e
           ISSUE="${{ steps.meta.outputs.issue }}"
-          BODY="자동 생성 PR (테스트 통과 후 자동 병합)."
-          if [ -n "$ISSUE" ]; then BODY="$BODY"$'\n\n'"Closes #$ISSUE"; fi
+          REPO="${{ github.repository }}"
+          MSG="auto-merge $BRANCH"
+          if [ -n "$ISSUE" ]; then MSG="$MSG (closes #$ISSUE)"; fi
 
-          # 이미 PR이 있으면 재사용, 없으면 생성
-          PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
-          if [ -z "$PR" ]; then
-            gh pr create --base main --head "$BRANCH" \
-              --title "auto: $BRANCH" --body "$BODY"
-            PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          # PR 생성 권한(Actions) 없이 contents:write 만으로 main에 직접 병합
+          echo "main에 $BRANCH 병합"
+          gh api -X POST "repos/$REPO/merges" \
+            -f base=main -f head="$BRANCH" -f commit_message="$MSG"
+
+          # 병합한 AI 브랜치 삭제
+          gh api -X DELETE "repos/$REPO/git/refs/heads/$BRANCH" || true
+
+          # 이슈 종료 (커밋 메시지 키워드 대신 명시적 종료로 확실히 닫음)
+          if [ -n "$ISSUE" ]; then
+            gh issue close "$ISSUE" --reason completed \
+              --comment "✅ 테스트 통과 → main 자동 병합 완료 (브랜치 $BRANCH 삭제)."
           fi
-          echo "PR #$PR 병합 시도"
-          gh pr merge "$PR" --squash --delete-branch
 
       - name: Notify issue on failure
         if: failure() && steps.meta.outputs.issue != ''
