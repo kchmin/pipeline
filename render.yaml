@@ -1,0 +1,15 @@
+# Render Blueprint — main 브랜치 push 시 자동 배포 (Flask + gunicorn)
+# 사용법: Render 대시보드 → New → Blueprint → 이 저장소(kchmin/pipeline) 연결
+# autoDeploy: true 이므로 이후 main에 병합되면(=@claude 자동병합 포함) 자동 재배포됨.
+services:
+  - type: web
+    name: pipeline-app
+    runtime: python
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
